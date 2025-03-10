@@ -1,4 +1,3 @@
-<img width="259" alt="image" src="https://github.com/user-attachments/assets/743e3fa4-8853-4543-95c7-4ba01779f5ec" /># Sampling-from-bivariate-von-Mises-distribution-Pyro-
 
 # Bivariate-von-Mises
 Pyro class to generate samples from the bivariate von Mises distributions
