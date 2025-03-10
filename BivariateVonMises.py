@@ -38,7 +38,7 @@ def _logCinv(k1, k2, lam, terms):
     logC = _log_binom(2*m, m) + m*((2*lam.log()) - (4*k1*k2).log()) + _log_im(m, k1) + _log_im(m, k2)
     return math.log(4) + 2* math.log(math.pi) + logC.logsumexp(-1)
 
-def bfind(eig):
+def _bfind(eig):
     # John  T  Kent,  Asaad  M  Ganeiber,  and  Kanti  V  Mardia.  
     # A new  unified  approach  forthe simulation of a wide class of directional distributions.
     # Journal of Computational andGraphical Statistics, 27(2):291–301, 2018.
@@ -78,7 +78,7 @@ def _acg_bound(nsim, k1, k2, lam, mtop = 1000):
     if eig[1] < 0:
         eigmin = eig[1]; eig = eig - eigmin
 
-    q = 2; b0 = bfind(eig)
+    q = 2; b0 = _bfind(eig)
     phi = 1 + 2*eig/b0; den = _log_im(0, k2)
     values = torch.empty(nsim, 2); accepted = 0
 
@@ -197,41 +197,4 @@ class BivariateVonMises(TorchDistribution):
             
             return type(self)(mu, nu, k1, k2, lam, validate_args=validate_args)
     
-def pseudo_log_likelihood(phi, psi, loc, w):
-    
-    mu = loc[0]; nu = loc[1]; k1 = w[0]; k2 = w[1]; lam = w[2] 
-        
-    k1_l = torch.sqrt( k1**2 + lam**2 * torch.sin(psi - nu)**2 )
-    psi_i = torch.atan( lam / k1 * torch.sin(psi - nu) )
-    cond1 = VonMises(mu - psi_i, k1_l).log_prob(phi)
-    
-    k2_l = torch.sqrt( k2**2 + lam**2 * torch.sin(phi - mu)**2 )
-    phi_i = torch.atan( lam / k2 * torch.sin(phi - mu) )
-    cond2 = VonMises(nu - phi_i, k2_l).log_prob(psi)
-    
-    return (cond1 + cond2).sum()
 
-def circ_mean(theta):
-    C = theta.cos().mean(); S = theta.sin().mean()
-    return torch.atan2(S, C)
-
-def moments(theta1, theta2, mean1, mean2):
-    S1 = (torch.sin(theta1 - mean1)**2).mean()
-    S2 = (torch.sin(theta2 - mean2)**2).mean()
-    S12 = (torch.sin(theta1 - mean1) * torch.sin(theta2 - mean2)).mean()
-    return torch.tensor([S2, S1, S12]) / (S1*S2 - S12**2)
-
-
-#n_samples = int(1e6)
-#loc = torch.tensor([0., 0.]); w = torch.tensor([30., 3000, 50.])
-#bvm = BivariateVonMises(loc[0], loc[1], w[0], w[1], w[2])
-#phi, psi = bvm.sample(n_samples)
-
-#import matplotlib.pyplot as plt
-
-#plt.scatter(phi, psi)
-#plt.xlim(-math.pi, math.pi)
-#plt.ylim(-math.pi, math.pi)
-#plt.xlabel("$\psi$")
-#plt.ylabel("$\phi$")
-#plt.show()
